@@ -15,14 +15,14 @@ SYMBOLS = {
 }
 
 SYMBOL_VALUE = {
-    "A": 6,
-    "B": 5,
-    "C": 4,
-    "D": 3
+    "A": 6.5,
+    "B": 4.5,
+    "C": 4.0,
+    "D": 3.0
 }
 
 
-def check_winnings(columns: list[list], bet: int, lines: int, values: dict[str, int]) -> tuple[int, list[int]]:
+def check_winnings(columns: list[list], bet: int, lines: int, values: dict[str, float]) -> tuple[float, list[int]]:
     """
     Check the winnings based on the slot machine columns, bet amount, number of lines, and symbol values.
 
@@ -30,12 +30,12 @@ def check_winnings(columns: list[list], bet: int, lines: int, values: dict[str, 
         columns (list[list]): The columns of symbols from the slot machine spin.
         bet (int): The bet amount per line.
         lines (int): The number of lines to bet on.
-        values (dict[str, int]): The values of each symbol.
+        values (dict[str, float]): The values of each symbol.
 
     Returns:
         tuple[int, list[int]]: A tuple containing the total winnings and a list of winning lines.
     """
-    winnings = 0
+    winnings = 0.0
     winning_lines = []
 
     for line in range(lines):
@@ -45,7 +45,7 @@ def check_winnings(columns: list[list], bet: int, lines: int, values: dict[str, 
             winnings += values[symbol] * bet
             winning_lines.append(line + 1)
 
-    return winnings, winning_lines
+    return round(winnings, 1), winning_lines
 
 
 def get_all_symbols(symbols: dict[str, int]) -> list[str]:
@@ -136,7 +136,7 @@ def get_bet() -> int:
         print(f"Invalid input. Enter a number between {MIN_BET} and {MAX_BET}.")
 
 
-def game(rows: int, columns: int, deposit_amount: int, symbols: dict[str, int], symbol_value: dict[str, int]) -> int:
+def game(rows: int, columns: int, deposit_amount: int, symbols: dict[str, int], symbol_value: dict[str, float]) -> float:
     """
     Manage the game logic, including placing bets, spinning the slot machine, and calculating winnings.
 
@@ -145,7 +145,7 @@ def game(rows: int, columns: int, deposit_amount: int, symbols: dict[str, int], 
         columns (int): The number of columns in the slot machine.
         deposit_amount (int): The initial deposit amount.
         symbols (dict[str, int]): A dictionary of symbols and their counts.
-        symbol_value (dict[str, int]): A dictionary of symbols and their values.
+        symbol_value (dict[str, float]): A dictionary of symbols and their values.
 
     Returns:
         int: The net result of the game (winnings minus total bet).
