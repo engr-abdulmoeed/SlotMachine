@@ -41,11 +41,7 @@ def check_winnings(columns: list[list], bet: int, lines: int, values: dict[str, 
     for line in range(lines):
         symbol = columns[0][line]
 
-        for column in columns:
-            symbol_to_check = column[line]
-            if symbol != symbol_to_check:
-                break
-        else:
+        if all(symbol == column[line] for column in columns):
             winnings += values[symbol] * bet
             winning_lines.append(line + 1)
 
@@ -62,13 +58,7 @@ def get_all_symbols(symbols: dict[str, int]) -> list[str]:
     Returns:
         list[str]: A list containing all symbols, repeated according to their counts.
     """
-    all_symbols = []
-
-    for symbol, symbol_count in symbols.items():
-        for _ in range(symbol_count):
-            all_symbols.append(symbol)
-
-    return all_symbols
+    return [symbol for symbol, count in symbols.items() for _ in range(count)]
 
 
 def get_slot_machine_spin(rows: int, columns: int, all_symbols: list[str]) -> list[list]:
@@ -83,35 +73,19 @@ def get_slot_machine_spin(rows: int, columns: int, all_symbols: list[str]) -> li
     Returns:
         list[list]: A 2D list representing the slot machine spin result, where each sublist is a column of symbols.
     """
-    output = []
 
-    for _ in range(columns):
-        col = []
-        current_symbols = all_symbols[:]
-
-        for _ in range(rows):
-            value = random.choice(current_symbols)
-            current_symbols.remove(value)
-            col.append(value)
-
-        output.append(col)
-
-    return output
+    return [[random.choice(all_symbols) for _ in range(rows)] for _ in range(columns)]
 
 
 def print_slot_machine_output(columns: list[list]) -> None:
     """
     Print the slot machine columns in a formatted way.
 
-    Args:
-        columns (list[list]): A 2D list representing the slot machine columns, where each sublist is a column of symbols.
+    Args: columns (list[list]): A 2D list representing the slot machine columns, where each sublist is a column of
+    symbols.
     """
     for row in range(len(columns[0])):
-        for i, column in enumerate(columns):
-            if i != len(columns) - 1:
-                print(column[row], end=" | ")
-            else:
-                print(column[row])
+        print(" | ".join(column[row] for column in columns))
 
 
 def deposit() -> int:
@@ -124,17 +98,10 @@ def deposit() -> int:
     while True:
         amount = input("How much money would you like to deposit? Rs.")
 
-        if amount.isdigit():
-            amount = int(amount)
+        if amount.isdigit() and int(amount) > 0:
+            return int(amount)
 
-            if amount > 0:
-                break
-            else:
-                print("Amount must be greater than 0")
-        else:
-            print("Invalid input. Enter a number.")
-
-    return amount
+        print("Invalid input. Enter a positive number.")
 
 
 def get_no_of_lines() -> int:
@@ -147,17 +114,10 @@ def get_no_of_lines() -> int:
     while True:
         lines = input(f"Enter the number of lines to bet on (1 - {MAX_LINES}): ")
 
-        if lines.isdigit():
-            lines = int(lines)
+        if lines.isdigit() and 1 <= int(lines) <= MAX_LINES:
+            return int(lines)
 
-            if 1 <= lines <= MAX_LINES:
-                break
-            else:
-                print(f"Invalid input. Enter a number between 1 and {MAX_LINES}.")
-        else:
-            print("Invalid input. Enter a number.")
-
-    return lines
+        print(f"Invalid input. Enter a number between 1 and {MAX_LINES}.")
 
 
 def get_bet() -> int:
@@ -170,25 +130,22 @@ def get_bet() -> int:
     while True:
         bet = input(f"What would you like to bet on each line? ({MIN_BET} - {MAX_BET}) ")
 
-        if bet.isdigit():
-            bet = int(bet)
+        if bet.isdigit() and MIN_BET <= int(bet) <= MAX_BET:
+            return int(bet)
 
-            if MIN_BET <= bet <= MAX_BET:
-                break
-            else:
-                print(f"Invalid input. Enter a number between {MIN_BET} and {MAX_BET}.")
-        else:
-            print("Invalid input. Enter a number.")
-
-    return bet
+        print(f"Invalid input. Enter a number between {MIN_BET} and {MAX_BET}.")
 
 
-def game(deposit_amount: int) -> int:
+def game(rows: int, columns: int, deposit_amount: int, symbols: dict[str, int], symbol_value: dict[str, int]) -> int:
     """
     Manage the game logic, including placing bets, spinning the slot machine, and calculating winnings.
 
     Args:
+        rows (int): The number of rows in the slot machine.
+        columns (int): The number of columns in the slot machine.
         deposit_amount (int): The initial deposit amount.
+        symbols (dict[str, int]): A dictionary of symbols and their counts.
+        symbol_value (dict[str, int]): A dictionary of symbols and their values.
 
     Returns:
         int: The net result of the game (winnings minus total bet).
@@ -206,27 +163,29 @@ def game(deposit_amount: int) -> int:
 
     print(f"You are betting Rs.{bet} on each line. Total bet amount is Rs.{total_bet}")
 
-    all_symbols = get_all_symbols(SYMBOLS)
-    slots = spin(all_symbols)
+    all_symbols = get_all_symbols(symbols)
+    slots = spin(rows, columns, all_symbols)
 
-    winning, winning_lines = check_winnings(slots, bet, lines, SYMBOL_VALUE)
+    winning, winning_lines = check_winnings(slots, bet, lines, symbol_value)
     print(f"You have won Rs.{winning}")
     print("You won on lines:", *winning_lines)
 
     return winning - total_bet
 
 
-def spin(all_symbols: list[str]) -> list[list]:
+def spin(rows: int, columns: int, all_symbols: list[str]) -> list[list]:
     """
     Generate a slot machine spin result and print the output.
 
     Args:
+        rows (int): The number of rows in the slot machine.
+        columns (int): The number of columns in the slot machine.
         all_symbols (list[str]): A list of all symbols to be used in the slot machine.
 
     Returns:
         list[list]: A 2D list representing the slot machine spin result, where each sublist is a column of symbols.
     """
-    slots = get_slot_machine_spin(ROWS, COLUMNS, all_symbols)
+    slots = get_slot_machine_spin(rows, columns, all_symbols)
     print_slot_machine_output(slots)
 
     return slots
@@ -242,7 +201,7 @@ def main() -> None:
         if play == 'q':
             break
 
-        balance = balance + game(balance)
+        balance += game(ROWS, COLUMNS, balance, SYMBOLS, SYMBOL_VALUE)
 
 
 if __name__ == "__main__":
