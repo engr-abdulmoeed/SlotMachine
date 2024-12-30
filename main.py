@@ -192,6 +192,24 @@ def spin(rows: int, columns: int, all_symbols: list[str]) -> list[list]:
 
 
 def main() -> None:
+    """
+    The main function to run the slot machine game.
+
+    - Prompts the user to deposit money as the initial balance.
+    - Continuously allows the user to play the game until they choose to quit.
+    - Displays the user's balance after each round.
+    - Ends the game when the user inputs 'q'.
+
+    Workflow:
+        1. Deposit money as the starting balance.
+        2. Prompt the user to spin the slot machine or quit the game.
+        3. Calculate winnings or losses based on the spin outcome.
+        4. Update the balance after each spin.
+        5. Exit the game if the user quits.
+
+    Returns:
+        None
+    """
     balance = deposit()
 
     while True:
